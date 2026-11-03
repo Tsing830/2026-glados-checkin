@@ -323,11 +323,11 @@ class GLaDOS:
                     # 表单提交交给 requests 自动设置 Content-Type，
                     # 手动预设 JSON 头会被兑换接口拒绝。
                     h.pop('Content-Type', None)
-                    resp = requests.post(url, headers=h, data=data, timeout=10)
+                    resp = requests.post(url, headers=h, data=data, timeout=10, allow_redirects=False)
                 elif method == 'GET':
-                    resp = requests.get(url, headers=h, timeout=10)
+                    resp = requests.get(url, headers=h, timeout=10, allow_redirects=False)
                 else:
-                    resp = requests.post(url, headers=h, json=data, timeout=10)
+                    resp = requests.post(url, headers=h, json=data, timeout=10, allow_redirects=False)
 
                 if resp.status_code == 200:
                     payload = resp.json()
