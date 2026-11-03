@@ -31,8 +31,6 @@ if sys.platform.startswith('win'):
 # 域名优先级：Cloud 第一
 DOMAINS = [
     "https://glados.cloud",
-    "https://glados.rocks", 
-    "https://glados.network",
 ]
 
 DEFAULT_USER_AGENT = (
@@ -597,7 +595,8 @@ def main():
         status_icon = "✅" if is_success else "❌"
         # Actions logs are public in a public repository. Keep account details
         # inside the private notification instead of exposing the email here.
-        log(f"{status_icon} 账号 {i} | 积分: {g.points} | 天数: {g.left_days} | 结果: {msg}")
+        public_result = '成功或今日已签到' if is_success else summarize_checkin_failure(res)
+        log(f"{status_icon} 账号 {i} | 结果: {public_result}")
 
         if is_success:
             success_cnt += 1
