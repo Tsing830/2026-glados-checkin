@@ -1,5 +1,8 @@
 # 🎁 5 分钟配置 GLaDOS 自动签到
 
+> [!NOTE]
+> 此 Fork 已配置为**仅自动签到**：仓库变量 `EXCHANGE_PLAN=off`，工作流缺省值也为 `off`。签到 Cookie 只发往 `https://glados.cloud`；公开运行日志不显示积分和剩余天数。只使用仓库内置的每日 09:30（北京时间）定时任务，不需要外部 cron。同步上游代码前，请检查这些定制修改是否仍然保留。
+
 > [!IMPORTANT]
 > **✅ GLaDOS 自动签到已恢复（2026-09-30）。** 新版认证修复已发布，维护者仓库已验证签到与 PushPlus 通知正常，[查看恢复公告和实测记录](https://github.com/lankerr/2026-glados-checkin/releases/tag/v2026.9.30)。
 >
