@@ -26,40 +26,35 @@ class TransientFailureTests(unittest.TestCase):
 
     @mock.patch('checkin.log')
     @mock.patch('checkin.requests.post')
-    def test_server_error_and_timeouts_preserve_only_safe_metadata(self, post, log):
+    def test_server_error_preserves_only_safe_metadata(self, post, log):
         response = mock.Mock(status_code=500)
         response.json.return_value = {'message': COOKIE}
-        post.side_effect = [response] + [
-            checkin.requests.ReadTimeout(COOKIE) for _ in checkin.DOMAINS[1:]
-        ]
+        post.return_value = response
 
         result = checkin.GLaDOS(COOKIE).checkin()
 
         self.assertEqual(post.call_count, len(checkin.DOMAINS))
         response.json.assert_not_called()
         self.assertEqual(result['http_status'], 500)
-        self.assertTrue(result['timed_out'])
+        self.assertNotIn('timed_out', result)
         self.assertFalse(checkin.is_non_retryable_checkin_result(result))
         self.assertFalse(checkin.is_normal_checkin_result(result))
         summary = checkin.summarize_checkin_failure(result)
         self.assertIn('网络或服务暂时异常', summary)
         self.assertIn('http_status=500', summary)
-        self.assertIn('timeout=true', summary)
         for private in ('private-session', 'private-signature'):
             self.assertNotIn(private, str(result) + str(log.call_args_list) + summary)
 
     @mock.patch('checkin.requests.post')
-    def test_fallback_success_discards_previous_failure_metadata(self, post):
+    def test_server_error_does_not_retry_on_another_domain(self, post):
         unavailable = mock.Mock(status_code=503)
-        ok = mock.Mock(status_code=200)
-        ok.json.return_value = {'code': 0, 'message': 'Checkin! Got 11 Points'}
-        post.side_effect = [unavailable, ok]
+        post.return_value = unavailable
 
         result = checkin.GLaDOS(COOKIE).checkin()
 
-        self.assertEqual(result, ok.json.return_value)
-        self.assertNotIn('request_failed', result)
-        self.assertTrue(checkin.is_normal_checkin_result(result))
+        self.assertTrue(result['request_failed'])
+        self.assertEqual(result['http_status'], 503)
+        self.assertEqual(post.call_count, 1)
 
     @mock.patch('checkin.log')
     @mock.patch('checkin.requests.post')
