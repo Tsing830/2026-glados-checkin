@@ -74,18 +74,16 @@ class AuthFailureTests(OfflineTestCase):
             self.assertNotIn(value, output)
 
     @mock.patch('checkin.requests.get')
-    def test_transient_http_error_still_falls_back_to_next_domain(self, get):
-        unavailable = mock.Mock(status_code=503)
-        ok = mock.Mock(status_code=200)
-        ok.json.return_value = {'code': 0, 'data': {'leftDays': 123}}
-        get.side_effect = [unavailable, ok]
+    def test_transient_http_error_stays_on_primary_domain(self, get):
+        get.return_value = mock.Mock(status_code=503)
         with mock.patch.dict(os.environ, {}, clear=True):
             client = checkin.GLaDOS(COOKIE)
             result = client.req('GET', '/api/user/status')
 
-        self.assertEqual(result, ok.json.return_value)
-        self.assertEqual(get.call_count, 2)
-        self.assertEqual(client.domain, checkin.DOMAINS[1])
+        self.assertTrue(result['request_failed'])
+        self.assertEqual(result['http_status'], 503)
+        self.assertEqual(get.call_count, 1)
+        self.assertEqual(client.domain, checkin.DOMAINS[0])
 
     @mock.patch('checkin.requests.post')
     def test_configured_cookie_and_user_agent_reach_checkin_request(self, post):
