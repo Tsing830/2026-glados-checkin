@@ -301,9 +301,13 @@ class GLaDOS:
         self.plan = "?"
         self.session_cookie_kind = get_session_cookie_kind(cookie)
         if self.session_cookie_kind != 'gld':
+            cookie_names = get_cookie_names(cookie)
+            session_present = 'gld:sess' in cookie_names
+            signature_present = 'gld:sess.sig' in cookie_names
             log(
-                "⚠️ Cookie 未包含完整的 gld:sess 与 gld:sess.sig；"
-                "2026-09 新版接口可能返回“没有权限”"
+                "⚠️ 新版 Cookie 字段不完整；"
+                f"会话字段: {'已找到' if session_present else '缺失'}；"
+                f"签名字段: {'已找到' if signature_present else '缺失'}"
             )
 
     def req(self, method, path, data=None, form=False):
